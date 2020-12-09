@@ -1,0 +1,107 @@
+import axios from "axios";
+// import { API } from "../state/model/api";
+// import { accessDenied, apiError, apiStart, apiEnd } from "../state/actions/api";
+import { MiddlewareAPI, Dispatch, Middleware, AnyAction } from "redux";
+
+// const apiMiddleware: Middleware = ({ dispatch }: MiddlewareAPI) => (next) => (
+// 	action: AnyAction
+// ) => {
+//   if (!action.meta || !action.meta.callApi) {
+//     return next(action);
+//   }
+
+//   const { successAction, errorAction, url, params } = action.payload;
+
+//   return fetchFn(url, params)
+//     .then(res => res.json())
+//     .then(res =>
+//       dispatch({
+//         type: successAction,
+//         payload: res
+//       })
+//     )
+//     .catch(res =>
+//       dispatch({
+//         type: errorAction,
+//         payload: res
+//       })
+//     );
+// };
+// export const loggerMiddleware: Middleware = <S>(api: MiddlewareAPI<S>) =>
+//     (next: Dispatch<S>) =>
+//         <A extends Action>(action: A): A => {
+//             console.log("Before");
+//             const result = next(action);
+//             console.log("After"); // Can use: api.getState()
+//             return result;
+//         };
+
+// const apiMiddleware = ({ dispatch }) => (next) => (action) => {
+const apiMiddleware: Middleware = ({ dispatch }) => (next) => (action: any) => {
+	let ori = next(action);
+
+	if (action.type !== API) return ori;
+
+	const {
+		url,
+		method,
+		data,
+		accessToken,
+		onSuccess,
+		onFailure,
+		label,
+		headers,
+	} = action.payload;
+
+	const dataOrParams = ["GET", "DELETE"].includes(method) ? "params" : "data";
+
+	// axios default configs
+	axios.defaults.baseURL = process.env.REACT_APP_BASE_URL || "";
+	axios.defaults.headers.common["Content-Type"] = "application/json";
+	axios.defaults.headers.common["Authorization"] = `Bearer${accessToken}`;
+
+	if (label) {
+		dispatch(apiStart(label));
+	}
+
+	axios
+		.request({
+			url,
+			method,
+			headers,
+			[dataOrParams]: data,
+		})
+		.then(({ data }) => {
+			dispatch(onSuccess(data));
+		})
+		.catch((error) => {
+			dispatch(apiError(error));
+			dispatch(onFailure(error));
+
+			if (error.response && error.response.status === 403) {
+				dispatch(accessDenied(window.location.pathname));
+			}
+		})
+		.finally(() => {
+			if (label) {
+				dispatch(apiEnd(label));
+			}
+		});
+	return ori;
+};
+
+export default apiMiddleware;
+
+// import { Middleware, MiddlewareAPI, Dispatch, Action } from "redux";
+// export interface ExtendedMiddleware<StateType> extends Middleware {
+//     <S extends StateType>(api: MiddlewareAPI<S>): (next: Dispatch<S>) => Dispatch<S>;
+// }
+
+// export const loggerMiddleware: ExtendedMiddleware<YourApplicationReduxStateTypeHere> = <S extends YourApplicationReduxStateTypeHere>(api: MiddlewareAPI<S>) =>
+//     (next: Dispatch<S>) =>
+//         <A extends Action>(action: A): A => {
+//             console.log("Before");
+//             const result = next(action);
+//             console.log("After"); // Can use: api.getState()
+//             return result;
+//         };
