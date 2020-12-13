@@ -8,37 +8,7 @@ import {
 	Action,
 } from "../model";
 import { RootState } from "../reducers";
-import { api } from ".";
-
-// export function getServices(): ThunkAction<void, RootState, null, Action> {
-// 	// return async (dispatch) => {
-// 	// 	await api(dispatch, `/service/products`);
-// 	// };
-// 	return async (dispatch) => {
-// 		// try {
-// 		const res = await fetch(`http://localhost:28081/service/products`);
-
-// 		if (!res.ok) {
-// 			const resData: ErrorData = await res.json();
-// 			throw new Error(resData.message);
-// 			// dispatch({
-// 			// 	type: CommonActions.SET_ERROR,
-// 			// 	payload: resData,
-// 			// });
-// 		}
-// 		const resData: Service[] = await res.json();
-// 		dispatch({
-// 			type: ServiceActions.GET_SERVICES,
-// 			payload: resData,
-// 		});
-// 		// } catch (err) {
-// 		// 	dispatch({
-// 		// 		type: CommonActions.SET_ERROR,
-// 		// 		payload: err.message,
-// 		// 	});
-// 		// }
-// 	};
-// }
+import { apiCommon } from ".";
 
 export function getServices(): ThunkAction<void, RootState, null, Action> {
 	// return async (dispatch) => {
@@ -46,7 +16,7 @@ export function getServices(): ThunkAction<void, RootState, null, Action> {
 	// };
 	return async (dispatch) => {
 		// try {
-		return await api(
+		return await apiCommon(
 			dispatch,
 			`http://localhost:28081/service/products`,
 			(data) => {
@@ -59,16 +29,39 @@ export function getServices(): ThunkAction<void, RootState, null, Action> {
 	};
 }
 
-export function addService(service: Service): ServiceAction {
-	return {
-		type: ServiceActions.ADD_SERVICE,
-		payload: service,
+export function addService(
+	service: Service
+): ThunkAction<void, RootState, null, Action> {
+	return async (dispatch) => {
+		// try {
+		return await apiCommon(
+			dispatch,
+			`http://localhost:28081/service/product`,
+			(data) => {
+				dispatch({
+					type: ServiceActions.ADD_SERVICE,
+					payload: data,
+				});
+			},
+			service
+		);
 	};
 }
 
-export function deleteService(id: number): ServiceAction {
-	return {
-		type: ServiceActions.DELETE_SERVICE,
-		payload: id,
+export function deleteService(
+	id: number
+): ThunkAction<void, RootState, null, Action> {
+	return async (dispatch) => {
+		// try {
+		return await apiCommon(
+			dispatch,
+			`http://localhost:28081/service/product/deleteId/${id}`,
+			(data) => {
+				dispatch({
+					type: ServiceActions.DELETE_SERVICE,
+					payload: id,
+				});
+			}
+		);
 	};
 }

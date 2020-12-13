@@ -2,7 +2,10 @@ import { CommonActionType } from ".";
 
 export interface Company {
 	id: number;
-	name: string;
+	companyName: string;
+	adminName: string;
+	adminEmail: string;
+	memo: string;
 }
 
 export enum CompanyActions {

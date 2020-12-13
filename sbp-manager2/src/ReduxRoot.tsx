@@ -3,6 +3,7 @@ import * as React from "react";
 import { Provider } from "react-redux";
 
 import App from "./App";
+import { ConfirmationProvider } from "./components/confirmation/ConfirmationService";
 import configureStore from "./configureStore";
 
 const { persistor, store } = configureStore();
@@ -15,7 +16,9 @@ export function ReduxRoot() {
 				persistor={persistor}
 			> */}
 			<SnackbarProvider SnackbarProps={{ autoHideDuration: 4000 }}>
-				<App />
+				<ConfirmationProvider>
+					<App />
+				</ConfirmationProvider>
 			</SnackbarProvider>
 
 			{/* </PersistGate> */}

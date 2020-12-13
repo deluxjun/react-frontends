@@ -5,6 +5,7 @@ import MenuIcon from "@material-ui/icons/Menu";
 import { makeStyles } from "@material-ui/styles";
 import { useSnackbar } from "material-ui-snackbar-provider";
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
 import { Route, Router } from "react-router-dom";
 import Loading from "./components/Loading";
@@ -24,7 +25,7 @@ interface IRoute {
 
 const routes: IRoute[] = [
 	{
-		label: "Home",
+		label: "Dashboard",
 		path: "/",
 		icon: "Home",
 		component: HomePage,
@@ -73,6 +74,7 @@ function Routes() {
 
 // menu!
 function Drawer() {
+	const { t } = useTranslation();
 	const classes = useStyles();
 
 	return (
@@ -87,7 +89,7 @@ function Drawer() {
 								<ListItemIcon>
 									{MaterialIcon(icon)}
 								</ListItemIcon>
-								<ListItemText primary={label} />
+								<ListItemText primary={t(label)} />
 							</ListItem>
 						</List>
 					</React.Fragment>
@@ -98,6 +100,7 @@ function Drawer() {
 }
 
 function App() {
+	const { t } = useTranslation();
 	const classes = useStyles();
 	const [mobileOpen, setMobileOpen] = React.useState(true);
 	const isMobile = useMediaQuery((theme: Theme) =>
@@ -113,13 +116,9 @@ function App() {
 		(state: RootState) => state.common.error
 	);
 
-	console.log("!!! ERROR: " + error);
-
 	React.useEffect(() => {
 		if (error != null)
-			snackbar.showMessage(
-				`Something happened! ${error?.message}, code: ${error?.code}`
-			);
+			snackbar.showMessage(`${error?.message}`, "close", () => null);
 	}, [error]);
 
 	return (
@@ -142,7 +141,7 @@ function App() {
 								color="inherit"
 								noWrap={isMobile}
 							>
-								SBP Admin
+								{t("product.name")}
 							</Typography>
 						</Toolbar>
 						<Loading></Loading>

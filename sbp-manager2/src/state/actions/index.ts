@@ -6,6 +6,7 @@ import { useSnackbar } from "material-ui-snackbar-provider";
 import { setError, setLoading } from "./common";
 import { ErrorData, Service } from "../model";
 import SelectInput from "@material-ui/core/Select/SelectInput";
+import { ContactSupportOutlined } from "@material-ui/icons";
 
 // errorComposer will compose a handleGlobally function
 const errorComposer = (error: any) => {
@@ -67,37 +68,47 @@ export interface ApiSuccessFunction {
 	(data: any): void;
 }
 
-export async function api(
+export async function apiCommon(
 	dispatch: any,
 	url: string,
-	fnSuccess: ApiSuccessFunction
+	fnSuccess: ApiSuccessFunction,
+	body?: object
 ) {
 	dispatch(setLoading(true));
 
 	try {
-		if (Math.random() * 10 < 5) throw new Error("make an error");
+		// make error
+		// if (Math.random() * 10 < 5) throw new Error("make an error");
 
-		const res = await fetch(url);
-		// await new Promise((r) => setTimeout(r, 5000));
+		const requestOptions: RequestInit = {
+			method: body ? "POST" : "GET",
+			headers: {
+				"Content-Type": "application/json;charset=utf-8",
+				// 'Authorization': 'Bearer my-token',
+			},
+			body: body ? JSON.stringify(body) : null,
+		};
 
-		if (!res.ok) {
-			const resData: ErrorData = await res.json();
-			dispatch(setLoading(false));
-			dispatch(setError(resData));
-		} else {
-			const data = await res.json();
-			fnSuccess(data);
-			dispatch(setLoading(false));
+		console.log(JSON.stringify(requestOptions));
 
-			// const resData: Service[] = await res.json();
-			// dispatch({
-			// 	type: ServiceActions.GET_SERVICES,
-			// 	payload: resData,
-			// });
-		}
+		const data = await fetch(url, requestOptions)
+			.then(async (res) => {
+				if (!res.ok) {
+					const resData: ErrorData = await res.json();
+					throw resData;
+				}
+				return res.text();
+			})
+			.then((text) => (text.length ? JSON.parse(text) : {}))
+			.catch((error) => {
+				throw error;
+			});
+
+		fnSuccess(data);
+		dispatch(setLoading(false));
 	} catch (err) {
 		dispatch(setLoading(false));
-		dispatch(setError(err.message));
+		dispatch(setError(err));
 	} finally {
 	}
 }
