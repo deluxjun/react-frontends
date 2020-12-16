@@ -7,16 +7,12 @@ import { apiCommon } from ".";
 export function getCompanies(): ThunkAction<void, RootState, null, Action> {
 	return async (dispatch) => {
 		// try {
-		return await apiCommon(
-			dispatch,
-			`http://localhost:28081/service/companies`,
-			(data) => {
-				dispatch({
-					type: CompanyActions.GET_COMPANIES,
-					payload: data,
-				});
-			}
-		);
+		return await apiCommon(dispatch, `/sservice/companies`, (data) => {
+			dispatch({
+				type: CompanyActions.GET_COMPANIES,
+				payload: data,
+			});
+		});
 	};
 }
 
@@ -34,7 +30,7 @@ export function addCompany(
 		// try {
 		return await apiCommon(
 			dispatch,
-			`http://localhost:28081/service/company`,
+			`/sservice/company`,
 			(data) => {
 				dispatch({
 					type: CompanyActions.ADD_COMPANY,

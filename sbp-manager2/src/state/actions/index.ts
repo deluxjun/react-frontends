@@ -7,6 +7,7 @@ import { setError, setLoading } from "./common";
 import { ErrorData, Service } from "../model";
 import SelectInput from "@material-ui/core/Select/SelectInput";
 import { ContactSupportOutlined } from "@material-ui/icons";
+import { logout } from "./user";
 
 // errorComposer will compose a handleGlobally function
 const errorComposer = (error: any) => {
@@ -17,22 +18,22 @@ const errorComposer = (error: any) => {
 	};
 };
 
-axios.interceptors.request.use(
-	function (config) {
-		// spinning start to show
-		// UPDATE: Add this code to show global loading indicator
-		// document.body.classList.add("loading-indicator");
+// axios.interceptors.request.use(
+// 	function (config) {
+// 		// spinning start to show
+// 		// UPDATE: Add this code to show global loading indicator
+// 		// document.body.classList.add("loading-indicator");
 
-		const token = window.localStorage.token;
-		if (token) {
-			config.headers.Authorization = `token ${token}`;
-		}
-		return config;
-	},
-	function (error) {
-		return Promise.reject(error);
-	}
-);
+// 		const token = window.localStorage.token;
+// 		if (token) {
+// 			config.headers.Authorization = `token ${token}`;
+// 		}
+// 		return config;
+// 	},
+// 	function (error) {
+// 		return Promise.reject(error);
+// 	}
+// );
 
 // axios.interceptors.response.use(
 // 	function (response) {
@@ -64,6 +65,23 @@ export function useActions(actions: any, deps?: any): any {
 	);
 }
 
+export function addAuthHeader(requestOptions) {
+	let str = localStorage.getItem("user");
+	if (!str) return;
+
+	// return authorization header with jwt token
+	let user = JSON.parse(str);
+
+	if (user && user.token) {
+		requestOptions.Authorization = "Bearer " + user.token;
+	}
+}
+
+export function clearStorage() {
+	// remove user from local storage to log user out
+	localStorage.removeItem("user");
+}
+
 export interface ApiSuccessFunction {
 	(data: any): void;
 }
@@ -72,7 +90,8 @@ export async function apiCommon(
 	dispatch: any,
 	url: string,
 	fnSuccess: ApiSuccessFunction,
-	body?: object
+	body?: object,
+	type?: string
 ) {
 	dispatch(setLoading(true));
 
@@ -83,32 +102,67 @@ export async function apiCommon(
 		const requestOptions: RequestInit = {
 			method: body ? "POST" : "GET",
 			headers: {
-				"Content-Type": "application/json;charset=utf-8",
+				"Content-Type": type ? type : "application/json;charset=utf-8",
 				// 'Authorization': 'Bearer my-token',
 			},
-			body: body ? JSON.stringify(body) : null,
+			// body: body ? JSON.stringify(body) : null,
 		};
+
+		addAuthHeader(requestOptions.headers);
+
+		if (type && type.indexOf("x-www-form-urlencoded") >= 0 && body)
+			requestOptions.body = Object.entries(body)
+				.map(
+					([key, value]) =>
+						`${encodeURIComponent(key)}=${encodeURIComponent(
+							value
+						)}`
+				)
+				.join("&");
+		else if (body) {
+			// json
+			requestOptions.body = JSON.stringify(body);
+		}
 
 		console.log(JSON.stringify(requestOptions));
 
 		const data = await fetch(url, requestOptions)
 			.then(async (res) => {
 				if (!res.ok) {
+					// forbidden
+					if (res.status === 401 || res.status === 403) {
+						// auto logout if 401 response returned from api
+						dispatch(logout());
+					}
 					const resData: ErrorData = await res.json();
 					throw resData;
 				}
 				return res.text();
 			})
-			.then((text) => (text.length ? JSON.parse(text) : {}))
+			.then((text) => {
+				// return text.length ? JSON.parse(text) : {};
+				return text;
+			})
 			.catch((error) => {
 				throw error;
 			});
 
-		fnSuccess(data);
+		let newData = data;
+		try {
+			newData = JSON.parse(data);
+		} catch (error) {}
+		fnSuccess(newData);
+
 		dispatch(setLoading(false));
 	} catch (err) {
 		dispatch(setLoading(false));
-		dispatch(setError(err));
+		if (err instanceof Error) {
+			dispatch(setError(err.message));
+			console.log("Error: " + err.message);
+		} else {
+			dispatch(setError(err as ErrorData));
+			console.log("ErrorData: " + (err as ErrorData).message);
+		}
 	} finally {
 	}
 }

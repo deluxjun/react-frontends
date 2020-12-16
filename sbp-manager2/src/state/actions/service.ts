@@ -16,16 +16,12 @@ export function getServices(): ThunkAction<void, RootState, null, Action> {
 	// };
 	return async (dispatch) => {
 		// try {
-		return await apiCommon(
-			dispatch,
-			`http://localhost:28081/service/products`,
-			(data) => {
-				dispatch({
-					type: ServiceActions.GET_SERVICES,
-					payload: data,
-				});
-			}
-		);
+		return await apiCommon(dispatch, `/service/products`, (data) => {
+			dispatch({
+				type: ServiceActions.GET_SERVICES,
+				payload: data,
+			});
+		});
 	};
 }
 
@@ -36,7 +32,7 @@ export function addService(
 		// try {
 		return await apiCommon(
 			dispatch,
-			`http://localhost:28081/service/product`,
+			`/sservice/product`,
 			(data) => {
 				dispatch({
 					type: ServiceActions.ADD_SERVICE,
@@ -55,7 +51,7 @@ export function deleteService(
 		// try {
 		return await apiCommon(
 			dispatch,
-			`http://localhost:28081/service/product/deleteId/${id}`,
+			`/sservice/product/deleteId/${id}`,
 			(data) => {
 				dispatch({
 					type: ServiceActions.DELETE_SERVICE,

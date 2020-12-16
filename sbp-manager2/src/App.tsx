@@ -7,42 +7,15 @@ import { useSnackbar } from "material-ui-snackbar-provider";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
-import { Route, Router } from "react-router-dom";
+import { Redirect, Route, Router } from "react-router-dom";
 import Loading from "./components/Loading";
 import { history } from "./configureStore";
-import { HomePage, ServicePage } from "./pages";
+import { HomePage, LoginPage, ServicePage } from "./pages";
 import { CompanyPage } from "./pages/CompanyPage";
+import { allRoutes, drawerRoutes } from "./routesHelper";
 import { ErrorData } from "./state/model";
 import { RootState } from "./state/reducers/index";
 import { withRoot } from "./withRoot";
-
-interface IRoute {
-	label: string;
-	path: string;
-	icon: string;
-	component: any;
-}
-
-const routes: IRoute[] = [
-	{
-		label: "Dashboard",
-		path: "/",
-		icon: "Home",
-		component: HomePage,
-	},
-	{
-		label: "Service",
-		path: "/service",
-		icon: "Redeem",
-		component: ServicePage,
-	},
-	{
-		label: "Company",
-		path: "/company",
-		icon: "Business",
-		component: CompanyPage,
-	},
-];
 
 const MaterialIcon = (icon: string) => {
 	let iconName = icon.replace(/Icon$/, "");
@@ -55,19 +28,59 @@ const MaterialIcon = (icon: string) => {
 	return React.createElement(resolved);
 };
 
+export const ProtectedRoute = ({ component: Component, ...rest }) => {
+	const isAuthenticated = useSelector(
+		(state: RootState) => state.user.isAuthenticated
+	);
+	return (
+		<Route
+			{...rest}
+			render={(props) => {
+				if (isAuthenticated) {
+					return <Component {...props} />;
+				} else {
+					return (
+						<Redirect
+							to={{
+								pathname: "/login",
+								state: {
+									from: props.location,
+								},
+							}}
+						/>
+					);
+				}
+			}}
+		/>
+	);
+};
+
 function Routes() {
 	const classes = useStyles();
 
 	return (
 		<div className={classes.content}>
-			{routes.map(({ path, component }, key) => (
-				<Route
-					exact={true}
-					path={path}
-					component={component}
-					key={key}
-				/>
-			))}
+			{allRoutes.map(({ path, component, requireAuth }, key) => {
+				if (requireAuth) {
+					return (
+						<ProtectedRoute
+							exact
+							path={path}
+							component={component}
+							key={key}
+						/>
+					);
+				} else {
+					return (
+						<Route
+							exact={true}
+							path={path}
+							component={component}
+							key={key}
+						/>
+					);
+				}
+			})}
 		</div>
 	);
 }
@@ -80,7 +93,7 @@ function Drawer() {
 	return (
 		<div>
 			<div className={classes.drawerHeader} />
-			{routes.map(({ label, path, icon, component }) => {
+			{drawerRoutes.map(({ label, path, icon, component }) => {
 				return (
 					<React.Fragment key={label}>
 						<Divider />
@@ -121,6 +134,10 @@ function App() {
 			snackbar.showMessage(`${error?.message}`, "close", () => null);
 	}, [error]);
 
+	const isAuthenticated = useSelector(
+		(state: RootState) => state.user.isAuthenticated
+	);
+
 	return (
 		// eslint-disable-line no-unused-vars
 		<Router history={history}>
@@ -146,33 +163,37 @@ function App() {
 						</Toolbar>
 						<Loading></Loading>
 					</AppBar>
-					<Hidden mdUp>
-						<DrawerMui
-							variant="temporary"
-							anchor={"left"}
-							open={mobileOpen}
-							classes={{
-								paper: classes.drawerPaper,
-							}}
-							onClose={handleDrawerToggle}
-							ModalProps={{
-								keepMounted: true, // Better open performance on mobile.
-							}}
-						>
-							<Drawer />
-						</DrawerMui>
-					</Hidden>
-					<Hidden smDown>
-						<DrawerMui
-							variant="permanent"
-							open
-							classes={{
-								paper: classes.drawerPaper,
-							}}
-						>
-							<Drawer />
-						</DrawerMui>
-					</Hidden>
+					{isAuthenticated && (
+						<>
+							<Hidden mdUp>
+								<DrawerMui
+									variant="temporary"
+									anchor={"left"}
+									open={mobileOpen}
+									classes={{
+										paper: classes.drawerPaper,
+									}}
+									onClose={handleDrawerToggle}
+									ModalProps={{
+										keepMounted: true, // Better open performance on mobile.
+									}}
+								>
+									<Drawer />
+								</DrawerMui>
+							</Hidden>
+							<Hidden smDown>
+								<DrawerMui
+									variant="permanent"
+									open
+									classes={{
+										paper: classes.drawerPaper,
+									}}
+								>
+									<Drawer />
+								</DrawerMui>
+							</Hidden>
+						</>
+					)}
 					<Routes />
 				</div>
 			</div>
