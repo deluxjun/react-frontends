@@ -1,8 +1,6 @@
 import React, { useState, useContext, useEffect } from "react";
 import useSound from "use-sound";
-import soundFile1 from "./burp.m4a";
-import soundFile2 from "./quick.m4a";
-import soundFile3 from "./bap.m4a";
+import soundFile1 from "./eat.wav";
 
 // make sure to use https
 export const API_ENDPOINT = `https://www.omdbapi.com/?apikey=${process.env.REACT_APP_MOVIE_API_KEY}`;
@@ -32,11 +30,9 @@ const AppProvider = ({ children }) => {
   const [status, setStatus] = useState(STATUS_GOING);
   const [got, setGot] = useState(false);
   const [count, setCount] = useState(1);
+  const [initLevel, setInitLevel] = useState(1);
 
   const [playEat1] = useSound(soundFile1);
-  const [playEat2] = useSound(soundFile2);
-  const [playEat3] = useSound(soundFile3);
-  const sounds = [playEat1, playEat2, playEat3];
 
   const handleKeyDown = async (key) => {
     // console.log(key);
@@ -57,11 +53,12 @@ const AppProvider = ({ children }) => {
   };
   // restartGame
   const restartGame = (params) => {
-    setDots(initDots);
-    setDirection(initDirection);
-    setIntervalTime(300);
+    // setCount(initLevel);
+    // setDots(initDots);
+    // setDirection(initDirection);
+    // setIntervalTime(300);
+    setLevel(initLevel);
     setStatus(STATUS_GOING);
-    setCount(1);
   };
 
   const moveSnake = async () => {
@@ -112,14 +109,36 @@ const AppProvider = ({ children }) => {
     return true;
   };
 
-  // // addTail
-  // const addTail = (params) => {
-  //   setDots([])
-  // }
+  const setLevel = (level) => {
+    if (!level) return;
+    if (level > 40) level = 40;
+    setInitLevel(level);
+
+    setCount(level - 1);
+    // set dots
+    let c = 0;
+    let newDots = [...initDots];
+    while (c++ < level) {
+      const head = newDots[newDots.length - 1];
+      newDots.push([head[0] + 2, head[1]]);
+    }
+    setDots(newDots);
+    gotTarget();
+    // set speed
+  };
+
+  const setNewSpeed = (count) => {
+    setIntervalTime((time) => {
+      if (time > 20) {
+        // console.log(300 / Math.sqrt(count));
+        return 300 / Math.sqrt(count);
+      }
+      return 20;
+    });
+  };
 
   const playSounds = () => {
-    const index = Math.floor(Math.random() * sounds.length);
-    sounds[index]();
+    playEat1();
   };
 
   // refresh target
@@ -129,15 +148,22 @@ const AppProvider = ({ children }) => {
     let randTop = Math.floor(Math.random() * 49) * 2;
     setTarget([randLeft, randTop]);
     setGot(true);
-    setCount(count + 1);
-    // speed up
-    setIntervalTime((oldTime) => {
-      if (oldTime > 200) return oldTime - 20;
-      else if (oldTime > 150) return oldTime - 10;
-      else if (oldTime > 50) return oldTime - 5;
-      else if (oldTime > 20) return oldTime - 2;
-      return oldTime;
+    setCount((c) => {
+      setNewSpeed(c + 1);
+      return c + 1;
     });
+    // speed up
+    // setIntervalTime((oldTime) => {
+    //   // if (oldTime > 200) return oldTime - 20;
+    //   // else if (oldTime > 150) return oldTime - 10;
+    //   // else if (oldTime > 50) return oldTime - 5;
+    //   // else if (oldTime > 20) return oldTime - 2;
+    //   // return oldTime;
+    //   console.log("time : ", oldTime);
+    //   if (oldTime > 20) return 300 / Math.sqrt(count);
+    //   return 20;
+    // });
+
     console.log("count", count);
     playSounds();
   };
@@ -147,6 +173,7 @@ const AppProvider = ({ children }) => {
     moveSnake();
   };
 
+  // init
   useEffect(() => {
     if (status != STATUS_GOING) {
       return;
@@ -161,9 +188,18 @@ const AppProvider = ({ children }) => {
     };
   }, [direction, status, dots]);
 
+  // render
   return (
     <AppContext.Provider
-      value={{ restartGame, handleKeyDown, count, dots, target, status }}
+      value={{
+        setLevel,
+        restartGame,
+        handleKeyDown,
+        count,
+        dots,
+        target,
+        status,
+      }}
     >
       {children}
     </AppContext.Provider>

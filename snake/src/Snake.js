@@ -1,14 +1,24 @@
 import React, { useState, useEffect } from "react";
+import { useParams, useLocation } from "react-router-dom";
 import { useGlobalContext } from "./context";
 import snakeHead from "./snake-head.png";
 
 const Snake = () => {
   const borderRef = React.useRef(null);
-  const { dots, target, handleKeyDown, status, count, restartGame } =
+  const restartRef = React.useRef(null);
+  const { dots, target, handleKeyDown, status, count, restartGame, setLevel } =
     useGlobalContext();
+  const search = useLocation().search;
+  const level = new URLSearchParams(search).get("level");
   useEffect(() => {
     borderRef.current.focus();
+    setLevel(level);
   }, []);
+
+  useEffect(() => {
+    if (status === 2) restartRef.current.focus();
+  }, [status]);
+
   return (
     <main className="section">
       <div
@@ -21,9 +31,11 @@ const Snake = () => {
         tabIndex="0"
       >
         {status === 2 && (
-          <>
-            <h2>GAME OVER</h2>
+          <div className="restart-wrapper">
+            <h2 className="gameover">GAME OVER</h2>
             <button
+              ref={restartRef}
+              className="restart-btn"
               onClick={() => {
                 restartGame();
                 borderRef.current.focus();
@@ -31,9 +43,13 @@ const Snake = () => {
             >
               restart
             </button>
-          </>
+          </div>
         )}
-        {status === 1 && <h2>PAUSE</h2>}
+        {status === 1 && (
+          <div className="restart-wrapper">
+            <h2 className="gameover">PAUSE</h2>
+          </div>
+        )}
 
         {dots.map((dot, index) => {
           return (

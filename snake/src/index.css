@@ -96,6 +96,9 @@ p {
   margin-bottom: 1.25rem;
   color: var(--clr-grey-3);
 }
+*:focus {
+  outline: none !important;
+}
 @media screen and (min-width: 800px) {
   h1 {
     font-size: 3rem;
@@ -182,4 +185,26 @@ Loading
   border: 3px solid #ccc;
   border-top-color: var(--clr-primary-5);
   animation: spinner 0.6s linear infinite;
+}
+.restart-wrapper {
+  display: grid;
+  justify-content: center;
+  width: 90vw;
+  height: 80vh;
+}
+.restart-btn {
+  width: 30vw;
+  height: 10vh;
+  font-size: 2rem;
+  margin: 2rem;
+  border: 3px solid #ccc;
+  border-top-color: var(--clr-primary-5);
+  z-index: 1;
+}
+
+.gameover {
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }

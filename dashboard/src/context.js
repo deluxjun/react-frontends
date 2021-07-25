@@ -3,8 +3,16 @@ import React, { useState, useContext, useEffect } from "react";
 const AppContext = React.createContext();
 
 const sites = [
-  { title: "Quiz", url: "http://www.google.com", image: "Quiz.png" },
-  { title: "Quiz2", url: "", image: "Quiz.png" },
+  {
+    title: "Quiz",
+    url: "http://deluxjun-react-quiz.netlify.app",
+    image: "Quiz.png",
+  },
+  {
+    title: "Snake",
+    url: "http://deluxjun-react-snake.netlify.app",
+    image: "Snake.png",
+  },
 ];
 
 const AppProvider = ({ children }) => {
