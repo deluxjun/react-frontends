@@ -2,10 +2,10 @@
 
 ## Snake Game made with React
 
-<!-- <h2 align="center">
-  <img src="https://github.com/deluxjun/Monitor-Server/blob/master/Monitor-page1.png" alt="Monitoring Agent" />
+<h2 align="center">
+  <img src="https://github.com/deluxjun/react-frontends/blob/main/snake/snake-page1.png" alt="Snake" />
   <br>
-</h2> -->
+</h2>
 
 ⚡️ A simple web game for studying React\
 
